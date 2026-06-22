@@ -199,3 +199,99 @@ dippedIntoReserve() == true
 ```
 
 Once verified, compare the false-path and true-path execution traces and document the differences.
+
+## Delegated EOA local Foundry measurement
+
+Date: 2026-06-22
+
+### Claim tested
+
+A delegated EOA created with `vm.signAndAttachDelegation` should return `true` from `dippedIntoReserve()` after its balance decrements below the 10 MON reserve.
+
+### Experiment
+
+- Monad Foundry: `forge 1.5.0-stable-monad`
+- EVM version: `prague`
+- Authority EOA balance starts at 11 MON
+- Authority delegates to `DelegatedDrain`
+- Sponsor calls authority address
+- Delegated execution sends 2 MON out
+- Authority balance becomes 9 MON
+- `dippedIntoReserve()` is called during execution
+
+### Result
+
+Temporary drain and restore:
+
+- beforeBalance: 11 MON
+- duringBalance: 9 MON
+- afterBalance: 11 MON
+- beforeDip: false
+- duringDip: false
+- afterRestore: false
+
+Final below-reserve no-restore:
+
+- beforeBalance: 11 MON
+- duringBalance: 9 MON
+- beforeDip: false
+- duringDip: false
+- transaction did not revert
+
+### Conclusion
+
+`vm.signAndAttachDelegation` verifies EIP-7702 code routing locally, but it does not reproduce Monad reserve-balance violation tracking in this experiment.
+
+Local Monad Foundry is therefore inconclusive for the exact state transition that causes `dippedIntoReserve()` to return true.
+
+Next step: test with a real Monad Testnet type-0x04 transaction carrying an authorization list.
+
+## First verified dippedIntoReserve() == true
+
+Date: 2026-06-22
+
+### Claim tested
+
+A real Monad Testnet EIP-7702 delegated EOA should return true from `dippedIntoReserve()` when its balance is decremented below the 10 MON reserve during execution.
+
+### Setup
+
+- Network: Monad Testnet
+- EIP-7702 path: real authorization-list transaction
+- Authority EOA delegated to `TestnetDelegatedProbe`
+- Sponsor submitted the transaction and paid gas
+- Authority started with 19 MON
+- Probe drained 10 MON to a refund sink
+- Authority temporarily dropped to 9 MON
+- Probe called MIP-4 `dippedIntoReserve()`
+- Probe refunded 10 MON back to authority
+- Probe called MIP-4 again
+
+### Observed result
+
+- lastBeforeBalance: 19 MON
+- lastDuringBalance: 9 MON
+- lastAfterBalance: 19 MON
+
+- lastBeforeDip: false
+- lastDuringDip: true
+- lastAfterDip: false
+
+### Conclusion
+
+This is the first verified `dippedIntoReserve() == true`.
+
+A protocol-created EIP-7702 delegated EOA whose balance is decremented from above 10 MON to below 10 MON during transaction execution causes `dippedIntoReserve()` to return true.
+
+Local Monad Foundry with `vm.signAndAttachDelegation` did not reproduce this reserve-balance state transition, even though it reproduced delegated code routing. Therefore, local cheatcode delegation is not equivalent to the real Monad Testnet EIP-7702 authorization path for this reserve-balance experiment.
+
+### Remaining open question
+
+This verifies a sufficient transition, not the complete state machine.
+
+Next boundary tests:
+
+1. Above reserve -> exactly 10 MON should probably return false.
+2. Above reserve -> 10 MON minus 1 wei should probably return true.
+3. Already below reserve -> unchanged or increased should return false.
+4. Already below reserve -> decremented further may return true for delegated EOAs.
