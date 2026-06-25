@@ -6,7 +6,7 @@ This repository treats protocol behavior as a research problem: claims should be
 
 ## Open Research Questions
 
-- Is the reserve boundary `< 10 MON` or `<= 10 MON`?
+- Does the observed `< 10 MON` reserve boundary from the sponsor-submitted Testnet authorization-list path hold in other execution contexts?
 - What happens when an account begins below reserve?
 - Does reserve tracking depend on whether the delegated EOA or a sponsor submits the transaction?
 - Why does local Monad Foundry reproduce delegated execution but not the observed Testnet reserve-dip behavior?
@@ -23,12 +23,12 @@ This repository treats protocol behavior as a research problem: claims should be
 - Solidity integration works
 - Monad Foundry simulates the precompile and delegated execution routing
 - A real Monad Testnet authorization-list transaction produced `dippedIntoReserve() == true` while a protocol-created delegated EOA moved from 19 MON to 9 MON
+- In the same Testnet path, a delegated EOA reaching exactly 10 MON did not trigger `dippedIntoReserve()`, while reaching 10 MON minus 1 wei did trigger it
 
 The Testnet result is a verified sufficient condition, not a complete description of the MIP-4 state machine.
 
 ### Pending
 
-- Determine the exact reserve threshold boundary
 - Determine below-reserve initial-state behavior
 - Determine whether sender and sponsor roles affect reserve tracking
 - Explain the reserve-tracking divergence between local Monad Foundry and Monad Testnet
@@ -74,6 +74,7 @@ The board uses four research-specific statuses:
 ## Research Documents
 
 - [State-machine matrix](docs/state-machine-matrix.md)
+- [Known facts](docs/known-facts.md)
 - [Minimum conditions for a reserve dip](docs/minimum-conditions.md)
 - [Monad Foundry fidelity](docs/foundry-fidelity.md)
 - [Reserve-state lifetime](docs/reserve-state-lifetime.md)

@@ -28,9 +28,26 @@ Local `vm.signAndAttachDelegation()` reproduced delegated execution routing but 
 | Delegated EOA | Unverified as required |
 | Real type-0x04 authorization-list transaction | Unverified as required |
 | Protocol-created delegation | Unverified as required |
-| Balance crossing below 10 MON | Hypothesis |
+| Balance crossing below 10 MON | Verified for the successful Testnet path |
 | Sponsor-submitted transaction | Unverified as required |
 | Touched-account classification | Hypothesis |
+
+## Boundary Experiment Result
+
+Issue #1 isolates the `balance crossing below 10 MON` candidate condition by preserving the successful Testnet path and changing only the drain amount.
+
+| Case | Start balance | Drain amount | During balance | Observed result | Transaction |
+| --- | --- | --- | --- | --- | --- |
+| Exact boundary | 19 MON | 9 MON | 10 MON | `false -> false -> false` | `0x9020ebbc1a1a52ea4a4b610051a02f105d3c0e12d682b2c088cbd6e4934fb529` |
+| One wei below boundary | 19 MON | 9 MON + 1 wei | 10 MON - 1 wei | `false -> true -> false` | `0xa1bf42734c6534728fb5554047f38fd26fc326888c3004a28b5e38284dfc4a6e` |
+
+For the tested path, the observed boundary is:
+
+```text
+balance < 10 MON
+```
+
+This result is verified for the sponsor-submitted real Monad Testnet EIP-7702 authorization-list path. It does not prove which other candidate conditions are required.
 
 ## Open Questions
 

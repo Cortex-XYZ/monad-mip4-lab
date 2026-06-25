@@ -16,11 +16,13 @@ Track observed `dippedIntoReserve()` behavior across balance transitions, accoun
 | Start balance | During balance | End balance | Account | Execution path | Transaction sender | Sponsor/caller | Crossed below 10 MON | Observed result | Evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 19 MON | 9 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | Yes | `false -> true -> false` | `notes/findings.md` |
+| 19 MON | 10 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | No | `false -> false -> false` | `0x9020ebbc1a1a52ea4a4b610051a02f105d3c0e12d682b2c088cbd6e4934fb529` |
+| 19 MON | 9.999999999999999999 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | Yes | `false -> true -> false` | `0xa1bf42734c6534728fb5554047f38fd26fc326888c3004a28b5e38284dfc4a6e` |
 | 11 MON | 9 MON | 11 MON | Cheatcode-delegated EOA | Local Monad Foundry `vm.signAndAttachDelegation()` | Sponsor | Sponsor | Yes | `false -> false -> false` | `test/DelegatedDrain.t.sol` |
 
 ## Open Questions
 
-- Is the boundary condition `< 10 MON` or `<= 10 MON`?
+- Does the observed `< 10 MON` boundary also hold for other sender, sponsor, and account-class combinations?
 - What happens when an account starts below reserve?
 - Does sender classification change reserve tracking?
 - Which difference between protocol-created and cheatcode-created delegation explains the observed divergence?
@@ -28,7 +30,6 @@ Track observed `dippedIntoReserve()` behavior across balance transitions, accoun
 
 ## Next Steps
 
-- Add exact-boundary observations at 10 MON and 10 MON minus 1 wei.
 - Add below-reserve initial-state observations.
 - Compare sponsor-submitted and authority-submitted transactions.
 - Attach transaction hashes, commands, and raw outputs to each matrix row.
