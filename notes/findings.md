@@ -295,3 +295,108 @@ Next boundary tests:
 2. Above reserve -> 10 MON minus 1 wei should probably return true.
 3. Already below reserve -> unchanged or increased should return false.
 4. Already below reserve -> decremented further may return true for delegated EOAs.
+
+## Sender vs sponsor comparison
+
+Date: 2026-07-02
+
+### Claim tested
+
+Changing the transaction sender from a sponsor to the delegated authority may affect reserve-balance tracking.
+
+### Hypothesis
+
+`dippedIntoReserve()` may behave differently when:
+
+- a sponsor submits the type-4 authorization-list transaction; versus
+- the delegated authority submits the type-4 authorization-list transaction directly.
+
+### Setup
+
+- Network: Monad Testnet
+- EIP-7702 path: real type-4 authorization-list transaction
+- Authority: `0x1ef26b741ddd257073f01e81e220fe61262f43b5`
+- Sponsor: `0xF156a49d339918cAae23243C661BCca0537f0de4`
+- Delegated implementation: `0xa3301516d31ed7d6b63380bead4ba66bc9ed6f2d`
+- Refund sink: `0x955B96ac0D1589A27254fF3B5b3dCa214a341cd2`
+- Probe: `probeDrainRestore(address,uint256)`
+- Target during balance for the sponsor case: `9999999999999999999` wei
+
+This was a current-balance comparison, not the original 19 MON default experiment. The authority was funded above 19 MON before the comparison.
+
+### Steps
+
+Run the same delegated probe path twice:
+
+```sh
+KEYSTORE_PASSWORD_FILE=.secrets/keystore-password.txt \
+SKIP_START_BALANCE_CHECK=1 \
+TARGET_DURING_BALANCE_WEI=9999999999999999999 \
+script/run-testnet-sender-sponsor-case.sh sponsor
+
+KEYSTORE_PASSWORD_FILE=.secrets/keystore-password.txt \
+SKIP_START_BALANCE_CHECK=1 \
+TARGET_DURING_BALANCE_WEI=9999999999999999999 \
+script/run-testnet-sender-sponsor-case.sh authority
+```
+
+The authority-submitted case signs the EIP-7702 authorization with `--self-broadcast`, because the same account signs the authorization and submits the transaction that carries it.
+
+### Observed result
+
+Sponsor-submitted transaction:
+
+- Transaction: `0x83ec8ec23c84b8d5a83f91cea7bad5ed70931bc7b63cfdfab3bae4276dac5a33`
+- Transaction type: `4`
+- Status: `1`
+- Gas used: `500000`
+- `txFrom`: `0xF156a49d339918cAae23243C661BCca0537f0de4`
+- `txTo`: `0x1ef26b741ddd257073f01e81e220fE61262F43b5`
+- `startChainBalance`: `20447430148844345000`
+- `lastBeforeBalance`: `20447430148844345000`
+- `lastDuringBalance`: `9999999999999999999`
+- `lastAfterBalance`: `20447430148844345000`
+- `lastBeforeDip`: `false`
+- `lastDuringDip`: `true`
+- `lastAfterDip`: `false`
+
+Authority-submitted transaction:
+
+- Transaction: `0x45164d211f3318567acac5e580101f58552a2e58a0e760c368e28f5a8fdccaaa`
+- Transaction type: `4`
+- Status: `1`
+- Gas used: `500000`
+- `txFrom`: `0x1ef26b741ddd257073f01e81e220fE61262F43b5`
+- `txTo`: `0x1ef26b741ddd257073f01e81e220fE61262F43b5`
+- `startChainBalance`: `20447430148844345000`
+- `endChainBalance`: `20392319724039345000`
+- `lastBeforeBalance`: `20392319724039345000`
+- `lastDuringBalance`: `9944889575194999999`
+- `lastAfterBalance`: `20392319724039345000`
+- `lastBeforeDip`: `false`
+- `lastDuringDip`: `true`
+- `lastAfterDip`: `false`
+
+### Conclusion
+
+For this tested current-balance path, a separate sponsor is not required to observe:
+
+```solidity
+dippedIntoReserve() == true
+```
+
+Both sender modes produced:
+
+```text
+false -> true -> false
+```
+
+when the delegated authority balance decremented below 10 MON during execution.
+
+This does not prove that all sender and sponsor cases are equivalent. The authority-submitted transaction paid gas from the authority, so its in-probe `lastBeforeBalance` was lower than the pre-transaction chain balance.
+
+### Remaining questions
+
+- Does sender classification affect exact-boundary cases in other variants?
+- Are there sender/sponsor differences when the balance starts below reserve?
+- Does this result generalize beyond the tested `probeDrainRestore` path?

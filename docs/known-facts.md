@@ -15,6 +15,19 @@ Record facts that have been verified by this repository's experiments and keep t
 - A real Monad Testnet EIP-7702 authorization-list transaction produced `dippedIntoReserve() == true` while a protocol-created delegated EOA moved from 19 MON to 9 MON during execution and returned to 19 MON afterward.
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to exactly 10 MON produced `lastDuringDip = false`.
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to 10 MON minus 1 wei produced `lastDuringDip = true`.
+- In a current-balance Testnet comparison using the same delegated probe, both sponsor-submitted and authority-submitted type-4 authorization-list transactions produced `lastDuringDip = true` when the delegated authority balance was decremented below 10 MON during execution.
+
+## Official Documentation Claims
+
+These claims come from Monad's official Reserve Balance documentation, not from this repo's experiments:
+
+- `user_reserve_balance` is 10 MON.
+- For EIP-7702-delegated EOAs, the documented blocked case is a balance decrement that leaves the EOA below 10 MON.
+- Delegated EOA transactions ending above or at 10 MON are documented as fine.
+- Delegated EOA balance changes that are unchanged or increasing are documented as fine.
+- Delegated EOAs cannot use the undelegated-account emptying exception.
+
+See [Official Monad Reserve Balance Documentation Notes](official-reserve-balance.md).
 
 ## Hypotheses
 
@@ -37,10 +50,37 @@ balance < 10 MON
 
 This is verified for the sponsor-submitted real Monad Testnet EIP-7702 authorization-list path. It does not prove the complete MIP-4 state machine.
 
+## Verified Sender vs Sponsor Cases
+
+These cases used the current funded authority balance rather than the original 19 MON default. They compare transaction sender classification while preserving the same delegated authority, implementation, refund sink, and `probeDrainRestore` path.
+
+| Case | Transaction | `txFrom` | Start chain balance | Drain amount | During balance | End / after balance | Observed dips |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Sponsor submits | `0x83ec8ec23c84b8d5a83f91cea7bad5ed70931bc7b63cfdfab3bae4276dac5a33` | `0xF156a49d339918cAae23243C661BCca0537f0de4` | 20.447430148844345 MON | 10.447430148844345001 MON | 9.999999999999999999 MON | 20.447430148844345 MON | `false -> true -> false` |
+| Authority submits directly | `0x45164d211f3318567acac5e580101f58552a2e58a0e760c368e28f5a8fdccaaa` | `0x1ef26b741ddd257073f01e81e220fE61262F43b5` | 20.447430148844345 MON | 10.447430148844345001 MON | 9.944889575194999999 MON | 20.392319724039345 MON | `false -> true -> false` |
+
+In the authority-submitted case, the authority paid gas. The in-probe `lastBeforeBalance` was therefore lower than the pre-transaction chain balance:
+
+```text
+startChainBalance = 20447430148844345000
+lastBeforeBalance = 20392319724039345000
+```
+
+## Sender vs Sponsor Conclusion
+
+For the tested current-balance path, a separate sponsor is not required to observe:
+
+```solidity
+dippedIntoReserve() == true
+```
+
+Both sender modes produced `false -> true -> false` when the delegated authority balance decremented below 10 MON during execution. This does not prove that all sender and sponsor cases are equivalent, because the authority-submitted transaction necessarily includes authority gas spend and a lower in-probe starting balance.
+
 ## Open Questions
 
 - Does the boundary behavior depend on sender, sponsor, or delegated account classification?
 - Does the same boundary behavior reproduce outside the successful Testnet authorization-list path?
+- Does `dippedIntoReserve()` expose the same state model as the official execution-policy description, or a lower-level implementation checkpoint?
 
 ## Next Steps
 

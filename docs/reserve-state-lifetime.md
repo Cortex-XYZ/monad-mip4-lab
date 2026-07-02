@@ -16,6 +16,8 @@ afterDip = false
 
 The authority balance moved from 19 MON to 9 MON and then returned to 19 MON. This observation is consistent with multiple possible state models and does not establish which model is implemented.
 
+Monad's official Reserve Balance docs describe the execution policy in terms of whether the delegated EOA decrements and ends below 10 MON. The docs also describe excessive intermediate debits as allowed when the ending balance is sufficient. That supports the need to distinguish `dippedIntoReserve()` sampling behavior from transaction-level revert policy.
+
 ## Open Questions
 
 - Does the precompile expose current execution state or transaction-local history?
@@ -23,6 +25,7 @@ The authority balance moved from 19 MON to 9 MON and then returned to 19 MON. Th
 - Is the result recomputed directly from current balances?
 - Does restoring the balance always clear the result?
 - Can nested calls observe different reserve state at the same execution point?
+- How does precompile sampling align with the official ending-balance policy language?
 
 ## Next Steps
 

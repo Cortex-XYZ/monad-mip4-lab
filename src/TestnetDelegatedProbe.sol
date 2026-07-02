@@ -36,6 +36,47 @@ contract TestnetDelegatedProbe {
 
     receive() external payable {}
 
+    function probeNoop()
+        external
+        returns (bool beforeDip, bool duringDip, bool afterDip)
+    {
+        lastBeforeBalance = address(this).balance;
+        beforeDip = RESERVE.dippedIntoReserve();
+        lastBeforeDip = beforeDip;
+
+        emit ProbeResult(
+            "before",
+            address(this),
+            msg.sender,
+            lastBeforeBalance,
+            beforeDip
+        );
+
+        lastDuringBalance = address(this).balance;
+        duringDip = RESERVE.dippedIntoReserve();
+        lastDuringDip = duringDip;
+
+        emit ProbeResult(
+            "during",
+            address(this),
+            msg.sender,
+            lastDuringBalance,
+            duringDip
+        );
+
+        lastAfterBalance = address(this).balance;
+        afterDip = RESERVE.dippedIntoReserve();
+        lastAfterDip = afterDip;
+
+        emit ProbeResult(
+            "after",
+            address(this),
+            msg.sender,
+            lastAfterBalance,
+            afterDip
+        );
+    }
+
     function probeDrainRestore(
         TestnetRefundSink sink,
         uint256 amount
@@ -68,6 +109,93 @@ contract TestnetDelegatedProbe {
         );
 
         sink.refund(payable(address(this)), amount);
+
+        lastAfterBalance = address(this).balance;
+        afterDip = RESERVE.dippedIntoReserve();
+        lastAfterDip = afterDip;
+
+        emit ProbeResult(
+            "after",
+            address(this),
+            msg.sender,
+            lastAfterBalance,
+            afterDip
+        );
+    }
+
+    function probeDrainNoRestore(
+        TestnetRefundSink sink,
+        uint256 amount
+    ) external returns (bool beforeDip, bool duringDip, bool afterDip) {
+        lastBeforeBalance = address(this).balance;
+        beforeDip = RESERVE.dippedIntoReserve();
+        lastBeforeDip = beforeDip;
+
+        emit ProbeResult(
+            "before",
+            address(this),
+            msg.sender,
+            lastBeforeBalance,
+            beforeDip
+        );
+
+        (bool sent,) = address(sink).call{value: amount}("");
+        require(sent, "drain failed");
+
+        lastDuringBalance = address(this).balance;
+        duringDip = RESERVE.dippedIntoReserve();
+        lastDuringDip = duringDip;
+
+        emit ProbeResult(
+            "during",
+            address(this),
+            msg.sender,
+            lastDuringBalance,
+            duringDip
+        );
+
+        lastAfterBalance = address(this).balance;
+        afterDip = RESERVE.dippedIntoReserve();
+        lastAfterDip = afterDip;
+
+        emit ProbeResult(
+            "after",
+            address(this),
+            msg.sender,
+            lastAfterBalance,
+            afterDip
+        );
+    }
+
+    function probeReceiveFrom(
+        TestnetRefundSink source,
+        uint256 amount
+    ) external returns (bool beforeDip, bool duringDip, bool afterDip) {
+        lastBeforeBalance = address(this).balance;
+        beforeDip = RESERVE.dippedIntoReserve();
+        lastBeforeDip = beforeDip;
+
+        emit ProbeResult(
+            "before",
+            address(this),
+            msg.sender,
+            lastBeforeBalance,
+            beforeDip
+        );
+
+        source.refund(payable(address(this)), amount);
+
+        lastDuringBalance = address(this).balance;
+        duringDip = RESERVE.dippedIntoReserve();
+        lastDuringDip = duringDip;
+
+        emit ProbeResult(
+            "during",
+            address(this),
+            msg.sender,
+            lastDuringBalance,
+            duringDip
+        );
 
         lastAfterBalance = address(this).balance;
         afterDip = RESERVE.dippedIntoReserve();
