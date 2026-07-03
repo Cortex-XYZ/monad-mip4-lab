@@ -4,6 +4,10 @@ Research notes and experiments investigating MIP-4 (Reserve Balance Introspectio
 
 This repository treats protocol behavior as a research problem: claims should be supported by reproducible evidence before they are treated as verified.
 
+## Onboarding
+
+**If you're new to Monad and Reserve Balance State machine, go through this learning resource**: [Monad Reserve Balance Tutorial](https://monadreservebalance.vercel.app/)
+
 ## Open Research Questions
 
 - Does the observed `< 10 MON` reserve boundary from the sponsor-submitted Testnet authorization-list path hold in other execution contexts?
