@@ -18,18 +18,20 @@ Track observed `dippedIntoReserve()` behavior across balance transitions, accoun
 | 19 MON | 9 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | Yes | `false -> true -> false` | `notes/findings.md` |
 | 19 MON | 10 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | No | `false -> false -> false` | `0x9020ebbc1a1a52ea4a4b610051a02f105d3c0e12d682b2c088cbd6e4934fb529` |
 | 19 MON | 9.999999999999999999 MON | 19 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | Yes | `false -> true -> false` | `0xa1bf42734c6534728fb5554047f38fd26fc326888c3004a28b5e38284dfc4a6e` |
+| 20.447430148844345 MON | 9.999999999999999999 MON | 20.447430148844345 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Sponsor | Sponsor | Yes | `false -> true -> false` | `0x83ec8ec23c84b8d5a83f91cea7bad5ed70931bc7b63cfdfab3bae4276dac5a33` |
+| 20.447430148844345 MON | 9.944889575194999999 MON | 20.392319724039345 MON | EIP-7702 delegated EOA | Real Monad Testnet authorization-list transaction | Delegated authority | Delegated authority | Yes | `false -> true -> false` | `0x45164d211f3318567acac5e580101f58552a2e58a0e760c368e28f5a8fdccaaa` |
 | 11 MON | 9 MON | 11 MON | Cheatcode-delegated EOA | Local Monad Foundry `vm.signAndAttachDelegation()` | Sponsor | Sponsor | Yes | `false -> false -> false` | `test/DelegatedDrain.t.sol` |
 
 ## Open Questions
 
 - Does the observed `< 10 MON` boundary also hold for other sender, sponsor, and account-class combinations?
 - What happens when an account starts below reserve?
-- Does sender classification change reserve tracking?
+- Does sender classification change reserve tracking in cases other than the current-balance below-threshold comparison?
 - Which difference between protocol-created and cheatcode-created delegation explains the observed divergence?
 - Does the result depend on touched-account or checkpoint classification?
 
 ## Next Steps
 
 - Add below-reserve initial-state observations.
-- Compare sponsor-submitted and authority-submitted transactions.
+- Compare additional sponsor-submitted and authority-submitted boundary variants if needed.
 - Attach transaction hashes, commands, and raw outputs to each matrix row.
