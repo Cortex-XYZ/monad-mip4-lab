@@ -16,6 +16,8 @@ Record facts that have been verified by this repository's experiments and keep t
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to exactly 10 MON produced `lastDuringDip = false`.
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to 10 MON minus 1 wei produced `lastDuringDip = true`.
 - In a current-balance Testnet comparison using the same delegated probe, both sponsor-submitted and authority-submitted type-4 authorization-list transactions produced `lastDuringDip = true` when the delegated authority balance was decremented below 10 MON during execution.
+- In a below-reserve Testnet authorization-list path, a delegated EOA starting at 9 MON and remaining unchanged succeeded with `false -> false -> false`.
+- In a below-reserve Testnet authorization-list path, a delegated EOA starting at 9 MON and attempting to decrement to 8 MON reverted. Because the transaction reverted, checkpoint writes and logs did not persist; the verified observation is the failed transaction outcome.
 
 ## Official Documentation Claims
 
@@ -76,13 +78,27 @@ dippedIntoReserve() == true
 
 Both sender modes produced `false -> true -> false` when the delegated authority balance decremented below 10 MON during execution. This does not prove that all sender and sponsor cases are equivalent, because the authority-submitted transaction necessarily includes authority gas spend and a lower in-probe starting balance.
 
+## Verified Below-Reserve Cases
+
+These cases used the below-reserve authority and the same delegated probe interface.
+
+| Case | Transaction | Start balance | Intended movement | Outcome | Observed dips |
+| --- | --- | --- | --- | --- | --- |
+| Below reserve, unchanged | `0xc12ed9c4301ff17813161dc87df7374b57d603183c9cf305f137ceb8a8309b4a` | 9 MON | 9 MON -> 9 MON -> 9 MON | Success | `false -> false -> false` |
+| Below reserve, decremented | `0xb3a7e0544f21aca52a2226c5cd92f5388e851cf02209db6dda6c6e4bfad57326` | 9 MON | 9 MON -> 8 MON intended | Reverted | Checkpoint writes reverted |
+
+## Below-Reserve Conclusion
+
+For the tested below-reserve path, starting below reserve is not itself a reserve violation when the delegated EOA balance is unchanged. Attempting to decrement that below-reserve delegated EOA failed on Testnet.
+
 ## Open Questions
 
 - Does the boundary behavior depend on sender, sponsor, or delegated account classification?
 - Does the same boundary behavior reproduce outside the successful Testnet authorization-list path?
 - Does `dippedIntoReserve()` expose the same state model as the official execution-policy description, or a lower-level implementation checkpoint?
+- Does the below-reserve recovery case, 9 MON -> 11 MON, have saved Testnet evidence?
 
 ## Next Steps
 
-- Use the same evidence format for below-reserve initial-state tests.
+- Add saved evidence for the below-reserve recovery path if needed.
 - Keep Issue #1 scoped to this tested path if closing it; open follow-up issues for other sender or account-class variants.
