@@ -332,12 +332,12 @@ Run the same delegated probe path twice:
 KEYSTORE_PASSWORD_FILE=.secrets/keystore-password.txt \
 SKIP_START_BALANCE_CHECK=1 \
 TARGET_DURING_BALANCE_WEI=9999999999999999999 \
-script/run-testnet-sender-sponsor-case.sh sponsor
+scripts/run-testnet-sender-sponsor-case.sh sponsor
 
 KEYSTORE_PASSWORD_FILE=.secrets/keystore-password.txt \
 SKIP_START_BALANCE_CHECK=1 \
 TARGET_DURING_BALANCE_WEI=9999999999999999999 \
-script/run-testnet-sender-sponsor-case.sh authority
+scripts/run-testnet-sender-sponsor-case.sh authority
 ```
 
 The authority-submitted case signs the EIP-7702 authorization with `--self-broadcast`, because the same account signs the authorization and submits the transaction that carries it.

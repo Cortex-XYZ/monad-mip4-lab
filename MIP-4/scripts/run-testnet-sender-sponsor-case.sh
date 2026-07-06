@@ -13,9 +13,9 @@ fi
 usage() {
   cat <<'USAGE'
 Usage:
-  script/run-testnet-sender-sponsor-case.sh preflight
-  script/run-testnet-sender-sponsor-case.sh sponsor
-  script/run-testnet-sender-sponsor-case.sh authority
+  scripts/run-testnet-sender-sponsor-case.sh preflight
+  scripts/run-testnet-sender-sponsor-case.sh sponsor
+  scripts/run-testnet-sender-sponsor-case.sh authority
 
 Purpose:
   Compare reserve tracking when the same delegated authority is executed through:

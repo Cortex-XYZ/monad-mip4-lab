@@ -41,9 +41,9 @@ The sender/sponsor candidate condition should be tested by preserving the same d
 Prepared command:
 
 ```sh
-script/run-testnet-sender-sponsor-case.sh preflight
-script/run-testnet-sender-sponsor-case.sh sponsor
-script/run-testnet-sender-sponsor-case.sh authority
+scripts/run-testnet-sender-sponsor-case.sh preflight
+scripts/run-testnet-sender-sponsor-case.sh sponsor
+scripts/run-testnet-sender-sponsor-case.sh authority
 ```
 
 Default experiment:
@@ -76,11 +76,11 @@ For a funded account that is above 19 MON, a non-standard comparison can still p
 ```sh
 SKIP_START_BALANCE_CHECK=1 \
 TARGET_DURING_BALANCE_WEI=9999999999999999999 \
-script/run-testnet-sender-sponsor-case.sh sponsor
+scripts/run-testnet-sender-sponsor-case.sh sponsor
 
 SKIP_START_BALANCE_CHECK=1 \
 TARGET_DURING_BALANCE_WEI=9999999999999999999 \
-script/run-testnet-sender-sponsor-case.sh authority
+scripts/run-testnet-sender-sponsor-case.sh authority
 ```
 
 This should be documented as a current-balance sender/sponsor comparison, not as the original 19 MON default experiment.

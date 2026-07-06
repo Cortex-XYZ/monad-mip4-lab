@@ -1,42 +1,30 @@
-# Monad MIP-4 Lab
+# Monad MIP Research Lab
 
-Research notes and experiments investigating MIP-4 (Reserve Balance Introspection) on Monad.
+A common home for evidence-based research into Monad Improvement Proposals (MIPs).
 
-This repository treats protocol behavior as a research problem: claims should be supported by reproducible evidence before they are treated as verified.
+This repository treats protocol behavior as a research problem: claims should be supported by reproducible evidence before they are treated as verified. Each MIP under investigation gets its own top-level folder containing all of its research documents, experiment scripts, and runnable example projects.
 
-## Onboarding
+## MIPs
 
-**If you're new to Monad and Reserve Balance State machine, go through this learning resource**: [Monad Reserve Balance Tutorial](https://monadreservebalance.vercel.app/)
+| MIP | Topic | Folder |
+| --- | --- | --- |
+| MIP-4 | Reserve Balance Introspection | [`MIP-4/`](MIP-4/) |
 
-## Open Research Questions
+## Repository Conventions
 
-- Does the observed `< 10 MON` reserve boundary from the sponsor-submitted Testnet authorization-list path hold in other execution contexts?
-- What happens when an account begins below reserve?
-- Does sender classification affect reserve tracking beyond the current-balance sponsor-vs-authority comparison?
-- Why does local Monad Foundry reproduce delegated execution but not the observed Testnet reserve-dip behavior?
-- How long does reserve state persist during transaction execution?
-- Which abstractions, if any, are supported by enough evidence for future ReserveGuard tooling?
+Every MIP folder follows the same layout (omit directories that don't apply — a docs-only MIP just has `README.md` and `docs/`):
 
-## Results
+```text
+MIP-N/
+├── README.md      Overview, open questions, verified results, document index
+├── docs/          Research writeups, findings logs, plans, presentations
+├── scripts/       Experiment runners (e.g. bash + cast testnet drivers)
+└── examples/      Runnable code projects, one self-contained folder per example
+```
 
-### Verified
-
-- Precompile exists at `0x1001`
-- Selector `0x3a61584e` returns ABI-encoded bool
-- Invalid calldata reverts with `input is invalid`
-- Solidity integration works
-- Monad Foundry simulates the precompile and delegated execution routing
-- A real Monad Testnet authorization-list transaction produced `dippedIntoReserve() == true` while a protocol-created delegated EOA moved from 19 MON to 9 MON
-- In the same Testnet path, a delegated EOA reaching exactly 10 MON did not trigger `dippedIntoReserve()`, while reaching 10 MON minus 1 wei did trigger it
-- In a current-balance Testnet comparison, both sponsor-submitted and delegated-authority-submitted type-4 transactions produced `dippedIntoReserve() == true` while the delegated authority balance decremented below 10 MON during execution
-
-The Testnet result is a verified sufficient condition, not a complete description of the MIP-4 state machine.
-
-### Pending
-
-- Determine below-reserve initial-state behavior
-- Determine whether sender and sponsor roles affect reserve tracking in cases beyond the current-balance below-threshold comparison
-- Explain the reserve-tracking divergence between local Monad Foundry and Monad Testnet
+- **All code lives under `examples/`.** Each example is a self-contained project folder named for what it does (e.g. `MIP-4/examples/reserve-probes/`), with its own toolchain config and dependencies. Different examples may use different frameworks (Foundry, Hardhat, viem/TS, …) and pin dependencies independently.
+- **Secrets are per-MIP.** Keystore passwords, deployed addresses, and env files live in `MIP-N/.secrets/`, which is gitignored. Experiment scripts resolve paths relative to their MIP folder.
+- **Monad Foundry.** Foundry-based examples that exercise Monad-specific behavior (such as the `0x1001` reserve-balance precompile) require the Monad fork of Foundry; standard Foundry cannot simulate the precompile.
 
 ## Research Workflow
 
@@ -52,11 +40,11 @@ Reasoning
 Conclusion
 ```
 
-Conclusions should distinguish verified sufficient conditions from hypotheses and unverified behavior. The full MIP-4 state machine is not yet known, and work that depends on unresolved semantics should be marked as blocked on further experiments.
+Conclusions should distinguish verified sufficient conditions from hypotheses and unverified behavior. Work that depends on unresolved semantics should be marked as blocked on further experiments.
 
 ### Research Board
 
-Open work is tracked in the [MIP-4 Research Board](https://github.com/orgs/Cortex-XYZ/projects/1), which is linked to this repository.
+Open work is tracked in the [Research Board](https://github.com/orgs/Cortex-XYZ/projects/1), which is linked to this repository.
 
 The board uses four research-specific statuses:
 
@@ -76,19 +64,11 @@ The board uses four research-specific statuses:
 - `blocked`: depends on unresolved evidence
 - `good first research task`: small, bounded task for collaborators
 
-## Research Documents
+## Adding a New MIP
 
-- [State-machine matrix](docs/state-machine-matrix.md)
-- [Known facts](docs/known-facts.md)
-- [Official Reserve Balance documentation notes](docs/official-reserve-balance.md)
-- [Minimum conditions for a reserve dip](docs/minimum-conditions.md)
-- [Monad Foundry fidelity](docs/foundry-fidelity.md)
-- [Reserve-state lifetime](docs/reserve-state-lifetime.md)
-- [MIP-4 semantics review](docs/semantics.md)
-- [ReserveGuard feasibility assessment](docs/reserveguard-feasibility.md)
-- [ERC-4337 research plan](research/4337-plan.md)
-
-These documents contain current verified facts, open questions, and next steps. Placeholder or partial documents should not be read as completed findings.
+1. Create `MIP-N/` with a `README.md` describing the proposal, open questions, and a document index.
+2. Add `docs/`, `scripts/`, and `examples/` as the research produces them, following the layout above.
+3. If an example has CI-runnable checks (e.g. a Foundry project), add its path to the matrix in [`.github/workflows/test.yml`](.github/workflows/test.yml).
 
 ## Contributing Research
 
@@ -99,4 +79,4 @@ These documents contain current verified facts, open questions, and next steps. 
 5. Update the relevant document or test with evidence.
 6. Move an issue to `Verified` only when the supporting evidence is committed and reviewable.
 
-Do not infer the complete MIP-4 state machine from a single successful reproduction. Negative results should be recorded as observations, not generalized beyond the tested environment.
+Negative results should be recorded as observations, not generalized beyond the tested environment.

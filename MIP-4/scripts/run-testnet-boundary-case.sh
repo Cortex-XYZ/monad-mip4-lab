@@ -13,8 +13,8 @@ fi
 usage() {
   cat <<'USAGE'
 Usage:
-  script/run-testnet-boundary-case.sh exact
-  script/run-testnet-boundary-case.sh below
+  scripts/run-testnet-boundary-case.sh exact
+  scripts/run-testnet-boundary-case.sh below
 
 Required environment:
   MONAD_RPC_URL
