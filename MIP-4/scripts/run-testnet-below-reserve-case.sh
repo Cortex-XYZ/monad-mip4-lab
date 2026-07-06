@@ -11,9 +11,9 @@ fi
 usage() {
   cat <<'USAGE'
 Usage:
-  script/run-testnet-below-reserve-case.sh noop
-  script/run-testnet-below-reserve-case.sh drain
-  script/run-testnet-below-reserve-case.sh recover
+  scripts/run-testnet-below-reserve-case.sh noop
+  scripts/run-testnet-below-reserve-case.sh drain
+  scripts/run-testnet-below-reserve-case.sh recover
 
 Required environment:
   MONAD_RPC_URL

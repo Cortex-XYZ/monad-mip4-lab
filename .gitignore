@@ -1,21 +1,8 @@
-# Compiler files
-cache/
-out/
-
-# Commonly ignored directories
-.logs/
-.ignore/
-
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
-
-# Dotenv file
+# local secrets and env files (any depth)
+.secrets/
 .env
 .env.*
 !.env.example
 
-# local secrets
-.env
-.secrets/
+# OS / editor
+.DS_Store

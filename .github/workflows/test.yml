@@ -9,10 +9,17 @@ on:
 
 jobs:
   check:
-    name: Foundry project
+    name: Foundry project (${{ matrix.project }})
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    strategy:
+      matrix:
+        project:
+          - MIP-4/examples/reserve-probes
+    defaults:
+      run:
+        working-directory: ${{ matrix.project }}
     steps:
       - uses: actions/checkout@v6
         with:

@@ -72,12 +72,8 @@ contract DelegatedDrainTest is Test {
 
         vm.prank(sponsor);
 
-        (
-            bool beforeDip,
-            bool duringDip,
-            uint256 beforeBalance,
-            uint256 duringBalance
-        ) = DelegatedDrain(authority).drainCheckNoRestore(sink, 2 ether);
+        (bool beforeDip, bool duringDip, uint256 beforeBalance, uint256 duringBalance) =
+            DelegatedDrain(authority).drainCheckNoRestore(sink, 2 ether);
 
         console2.log("final below reserve beforeBalance", beforeBalance);
         console2.log("final below reserve duringBalance", duringBalance);
