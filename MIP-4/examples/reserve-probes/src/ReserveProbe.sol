@@ -2,13 +2,13 @@
 pragma solidity ^0.8.24;
 
 interface IReserveBalance {
-	function dippedIntoReserve() external returns (bool);
+    function dippedIntoReserve() external returns (bool);
 }
 
 contract ReserveProbe {
-	address constant RESERVE_BALANCE = address(0x1001);
+    address constant RESERVE_BALANCE = address(0x1001);
 
-	function probe() external returns (bool) {
-		return IReserveBalance(RESERVE_BALANCE).dippedIntoReserve();
-	}
+    function probe() external returns (bool) {
+        return IReserveBalance(RESERVE_BALANCE).dippedIntoReserve();
+    }
 }

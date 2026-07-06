@@ -13,24 +13,21 @@ contract ReserveTransfer {
     }
 
     function sendAndCheck(address payable receiver) external payable returns (bool) {
-        (bool ok, ) = receiver.call{value: msg.value}("");
+        (bool ok,) = receiver.call{value: msg.value}("");
         require(ok, "transfer failed");
 
         return check();
     }
 
-    function doubleSendAndCheck(
-        address payable receiver1,
-        address payable receiver2
-    ) external payable returns (bool) {
+    function doubleSendAndCheck(address payable receiver1, address payable receiver2) external payable returns (bool) {
         require(msg.value == 2 ether, "send exactly 2 MON");
 
-        (bool ok1, ) = receiver1.call{value: 1 ether}("");
+        (bool ok1,) = receiver1.call{value: 1 ether}("");
         require(ok1, "first transfer failed");
 
         bool afterFirst = check();
 
-        (bool ok2, ) = receiver2.call{value: 1 ether}("");
+        (bool ok2,) = receiver2.call{value: 1 ether}("");
         require(ok2, "second transfer failed");
 
         bool afterSecond = check();

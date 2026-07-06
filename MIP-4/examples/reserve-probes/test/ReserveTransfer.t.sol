@@ -32,10 +32,7 @@ contract ReserveTransferTest is Test {
         vm.deal(alice, 11 ether);
 
         vm.prank(alice);
-        bool dipped = transferProbe.doubleSendAndCheck{value: 2 ether}(
-            receiver1,
-            receiver2
-        );
+        bool dipped = transferProbe.doubleSendAndCheck{value: 2 ether}(receiver1, receiver2);
 
         emit log_named_uint("alice balance", alice.balance);
         emit log_named_uint("receiver1 balance", receiver1.balance);

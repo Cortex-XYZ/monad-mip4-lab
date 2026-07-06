@@ -15,15 +15,11 @@ contract RefundSink {
 }
 
 contract DelegatedDrain {
-    IReserveBalance constant RESERVE =
-        IReserveBalance(0x0000000000000000000000000000000000001001);
+    IReserveBalance constant RESERVE = IReserveBalance(0x0000000000000000000000000000000000001001);
 
     receive() external payable {}
 
-    function drainCheckRestore(
-        RefundSink sink,
-        uint256 amount
-    )
+    function drainCheckRestore(RefundSink sink, uint256 amount)
         external
         returns (
             bool beforeDip,
@@ -49,17 +45,9 @@ contract DelegatedDrain {
         afterRestore = RESERVE.dippedIntoReserve();
     }
 
-    function drainCheckNoRestore(
-        RefundSink sink,
-        uint256 amount
-    )
+    function drainCheckNoRestore(RefundSink sink, uint256 amount)
         external
-        returns (
-            bool beforeDip,
-            bool duringDip,
-            uint256 beforeBalance,
-            uint256 duringBalance
-        )
+        returns (bool beforeDip, bool duringDip, uint256 beforeBalance, uint256 duringBalance)
     {
         beforeBalance = address(this).balance;
         beforeDip = RESERVE.dippedIntoReserve();
