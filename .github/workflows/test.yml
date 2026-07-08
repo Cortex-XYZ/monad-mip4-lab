@@ -17,6 +17,7 @@ jobs:
       matrix:
         project:
           - MIP-4/examples/reserve-probes
+          - MIP-4/examples/mip4-sca
     defaults:
       run:
         working-directory: ${{ matrix.project }}

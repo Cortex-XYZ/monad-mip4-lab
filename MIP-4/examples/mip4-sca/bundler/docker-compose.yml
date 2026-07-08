@@ -1,0 +1,20 @@
+
+services:
+  alto:
+    image: ghcr.io/pimlicolabs/alto:latest
+    command:
+      - --entrypoints=0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108
+      - --rpc-url=${MONAD_TESTNET_RPC:-https://testnet-rpc.monad.xyz}
+      # Monad mode: per-op reserve-balance simulation at acceptance (rejects
+      # dipping 7702 ops before they poison a bundle) + gas-limit-based PVG
+      - --chain-type=monad
+      - --executor-private-keys=${ALTO_EXECUTOR_KEYS}
+      - --utility-private-key=${ALTO_UTILITY_KEY}
+      - --safe-mode=false
+      - --eip-7702-support=true
+      - --deploy-simulations-contract=true
+      - --bundle-mode=manual
+      - --enable-debug-endpoints=true
+      - --port=4337
+    ports:
+      - "4337:4337"

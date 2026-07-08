@@ -1,0 +1,21 @@
+{
+  "name": "mip4-sca-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "integration:anvil": "tsx src/integration-anvil.ts",
+    "setup:testnet": "tsx src/setup-testnet.ts",
+    "demo:direct": "tsx src/demo-direct-handleops.ts",
+    "demo:alto": "tsx src/demo-alto.ts",
+    "demo:stale": "tsx src/demo-stale-sim.ts"
+  },
+  "dependencies": {
+    "viem": "^2.37.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "@types/node": "^24.0.0"
+  }
+}
