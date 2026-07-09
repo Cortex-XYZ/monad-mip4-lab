@@ -1,3 +1,12 @@
 [submodule "lib/forge-std"]
 	path = MIP-4/examples/reserve-probes/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "MIP-4/examples/mip4-sca/lib/forge-std"]
+	path = MIP-4/examples/mip4-sca/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
+[submodule "MIP-4/examples/mip4-sca/lib/account-abstraction"]
+	path = MIP-4/examples/mip4-sca/lib/account-abstraction
+	url = https://github.com/eth-infinitism/account-abstraction
+[submodule "MIP-4/examples/mip4-sca/lib/openzeppelin-contracts"]
+	path = MIP-4/examples/mip4-sca/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
