@@ -57,3 +57,5 @@ When updating research docs:
 - Put official documentation claims under "what the docs say" or "specified behavior."
 - Put transaction observations under "verified experimentally."
 - Keep hypotheses separate when they combine documentation claims with incomplete local evidence.
+
+The per-claim status vocabulary these categories feed into is defined in [semantics.md](semantics.md).

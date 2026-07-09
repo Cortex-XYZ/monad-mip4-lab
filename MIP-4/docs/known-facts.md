@@ -4,6 +4,8 @@
 
 Record facts that have been verified by this repository's experiments and keep them separate from hypotheses and open questions.
 
+Per-claim status labels and citations are consolidated in [MIP-4 semantics review](semantics.md).
+
 ## Verified Facts
 
 - The MIP-4 reserve-balance precompile is callable at `0x0000000000000000000000000000000000001001` on Monad Testnet.
