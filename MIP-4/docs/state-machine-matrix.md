@@ -4,6 +4,8 @@
 
 Track observed `dippedIntoReserve()` behavior across balance transitions, account types, transaction paths, and caller roles without treating the full MIP-4 state machine as known.
 
+Matrix rows are cited by row name from [semantics.md](semantics.md); keep row names stable when editing.
+
 ## Current Verified Facts
 
 - A real Monad Testnet authorization-list transaction involving a protocol-created EIP-7702 delegated EOA produced `duringDip = true` when the authority balance moved from 19 MON to 9 MON.
