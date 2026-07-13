@@ -34,7 +34,7 @@ The official docs align with Issue #1's verified Testnet boundary result:
 | 19 MON -> 10 MON -> 19 MON | no reserve violation for above-or-at 10 MON | `false -> false -> false` |
 | 19 MON -> 10 MON - 1 wei -> 19 MON | reserve violation while below 10 MON | `false -> true -> false` |
 
-The docs also support treating "starting below reserve and unchanged/increasing" as a separate, likely non-violating case. This still needs a repo-local Testnet experiment before it is marked verified here.
+The unchanged below-reserve case is now repo-verified: a delegated EOA starting at 9 MON and remaining unchanged succeeded with `false -> false -> false`. The increasing/recovery case, such as 9 MON -> 11 MON, still needs saved Testnet evidence before it is marked verified here.
 
 ## Questions This Helps Answer
 
