@@ -11,11 +11,12 @@ This repository treats protocol behavior as a research problem: claims should be
 ## Open Research Questions
 
 - Does the observed `< 10 MON` reserve boundary from the sponsor-submitted Testnet authorization-list path hold in other execution contexts?
-- What happens when an account begins below reserve?
+- Does below-reserve recovery, such as `9 MON -> 11 MON`, have saved Testnet evidence?
 - Does sender classification affect reserve tracking beyond the current-balance sponsor-vs-authority comparison?
 - Why does local Monad Foundry reproduce delegated execution but not the observed Testnet reserve-dip behavior?
 - How long does reserve state persist during transaction execution?
 - Which abstractions, if any, are supported by enough evidence for future ReserveGuard tooling?
+- How should MIP-4-aware smart accounts handle reserve dips inside ERC-4337 bundles?
 
 ## Results
 
@@ -29,14 +30,18 @@ This repository treats protocol behavior as a research problem: claims should be
 - A real Monad Testnet authorization-list transaction produced `dippedIntoReserve() == true` while a protocol-created delegated EOA moved from 19 MON to 9 MON
 - In the same Testnet path, a delegated EOA reaching exactly 10 MON did not trigger `dippedIntoReserve()`, while reaching 10 MON minus 1 wei did trigger it
 - In a current-balance Testnet comparison, both sponsor-submitted and delegated-authority-submitted type-4 transactions produced `dippedIntoReserve() == true` while the delegated authority balance decremented below 10 MON during execution
+- In a below-reserve Testnet path, a delegated EOA starting at 9 MON and remaining unchanged succeeded with `false -> false -> false`
+- In a below-reserve Testnet path, a delegated EOA starting at 9 MON and attempting to decrement to 8 MON reverted
+- `examples/mip4-sca` contains a MIP-4-aware ERC-4337 smart account example that guards EIP-7702 delegated account execution against newly introduced reserve dips
 
 The Testnet result is a verified sufficient condition, not a complete description of the MIP-4 state machine.
 
 ### Pending
 
-- Determine below-reserve initial-state behavior
+- Save evidence for below-reserve recovery behavior, if needed
 - Determine whether sender and sponsor roles affect reserve tracking in cases beyond the current-balance below-threshold comparison
 - Explain the reserve-tracking divergence between local Monad Foundry and Monad Testnet
+- Review the `mip4-sca` example against the ERC-4337 research plan and update any stale issue state
 
 ## Research Workflow
 

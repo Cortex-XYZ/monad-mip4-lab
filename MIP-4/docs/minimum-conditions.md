@@ -34,6 +34,20 @@ Monad's official Reserve Balance docs say that EIP-7702-delegated EOAs hit the d
 | Sponsor-submitted transaction | Not required for observing `true` in the tested current-balance path |
 | Touched-account classification | Hypothesis |
 
+## Current Answer Map
+
+This table separates Monad documentation claims from repo-verified observations. Official docs can answer execution-policy questions, but they do not replace local evidence for what `dippedIntoReserve()` returns at a specific checkpoint.
+
+| Question | Current answer | Basis | What remains |
+| --- | --- | --- | --- |
+| Is EIP-7702 delegation required, or can another account class trigger the same observation? | For the documented delegated-account blocked case, EIP-7702 delegation is the relevant account class. Undelegated senders have a separate emptying exception path. | Specified by Monad docs; repo true-path evidence is EIP-7702 delegated EOA only. | Test whether other account classes can make `dippedIntoReserve()` return `true`, or explicitly keep this repo scoped to delegated EOAs. |
+| Is a real type-4 authorization-list transaction required, or can another transaction path reproduce it? | Not answered by official docs. The repo's verified `true` observations use real Testnet authorization-list transactions. Local cheatcode delegation reproduced routing but not reserve tracking. | Repo evidence. | Compare real type-4, local cheatcode delegation, and `anvil --monad` paths until the transaction-path requirement is isolated. |
+| Is protocol-created delegation required, or should Foundry cheatcode-created delegation behave the same? | Not answered by official docs. Current repo evidence shows a divergence: protocol-created Testnet delegation produced `true`; `vm.signAndAttachDelegation()` did not. | Repo evidence. | Reduce the Foundry/Testnet difference and, if still reproducible, report it upstream to Monad Foundry with a minimal test case. |
+| Is the important condition simply `balance < 10 MON` after a decrement, or does touched-account/checkpoint classification matter? | The docs specify that delegated EOAs revert when the balance decrements and drops below 10 MON. The repo verified the `< 10 MON` boundary for one Testnet path. | Specified by Monad docs; partially verified by repo boundary tests. | Determine whether touched-account or checkpoint classification changes when `dippedIntoReserve()` becomes true. |
+| Does the observation depend on call depth, caller role, or transaction lifetime? | Caller role is partly answered: a separate sponsor is not required in the tested current-balance path. Call depth and transaction lifetime remain open. | Repo sender/sponsor comparison. | Run lifetime and nested-call experiments with observations before debit, after debit, after nested calls, after refund, and before transaction completion. |
+| Does no-restore behave differently from drain-restore? | Partly answered. Drain-restore produced `false -> true -> false` on Testnet. Below-reserve unchanged produced `false -> false -> false`. Below-reserve decrement reverted, so checkpoint writes did not persist. | Repo evidence. | Add a clean no-restore path from above reserve, and add saved evidence for the below-reserve recovery path if needed. |
+| Does an SCA / ERC-4337 path change the condition set or just expose the same condition through EntryPoint? | Not fully answered. `mip4-sca` demonstrates a guarded ERC-4337 / EIP-7702 path, but the evidence still needs to be classified by environment. | Repo implementation and demo coverage. | Separate Forge unit coverage, `anvil --monad` observations, and Monad Testnet evidence before treating the SCA path as a verified minimum-condition result. |
+
 ## Sender vs Sponsor Experiment Plan
 
 The sender/sponsor candidate condition should be tested by preserving the same delegated-probe path and changing only the transaction sender where possible.
