@@ -119,7 +119,7 @@ Because consensus admits transactions it cannot fully evaluate, you can see tran
 
 Ethereum also includes reverting transactions, so this is not a protocol difference in principle. But Monad’s asynchronous architecture makes it especially important to understand that “included in a finalized block” and “succeeded in execution” are not the same thing.
 
-### Is the reserve configurable? Not yet.
+### Is the reserve configurable? Not yet
 
 Today the reserve is a uniform constant: 10 MON for every EOA. Monad’s documentation states that a future version *could* let users customize their reserve through a stateful precompile, but this is described as a possibility, not a shipped feature.
 
@@ -332,10 +332,9 @@ If there is one point Section 4 should leave the reader with, it is this:
 * **Before MIP-4**, reserve balance was a hidden end-of-execution tripwire. Contracts could only discover it by failing.
 * **After MIP-4**, the same reserve-balance rule is still there, but contracts can now ask - at any point during execution - whether the transaction has already crossed into that failure state.
 
-And the reason that question is practical to ask is that Monad does not recompute it from scratch on every call. It keeps the reserve-violation state updated incrementally as balances change, so `dippedIntoReserve()` itself can be a cheap O(1) lookup rather than an O(n) scan over every account the transaction has touched.
+MIP-4 requires implementations to update the reserve-violation state incrementally as balances change. That makes `dippedIntoReserve()` a cheap O(1) lookup rather than an O(n) scan over every account the transaction has touched.
 
 That is the real contribution of MIP-4: not a new reserve rule, but a new way for contracts to *observe* the existing one while they still have time to do something about it.
-
 
 ---
 

@@ -8,10 +8,11 @@ Capture the parts of Monad's official Reserve Balance documentation that are rel
 
 - Documentation index: <https://docs.monad.xyz/llms.txt>
 - Reserve Balance page: <https://docs.monad.xyz/developer-essentials/reserve-balance>
+- MIP-4 final text: <https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md>
 - Formal reserve balance specification: <https://category-labs.github.io/category-research/monad-initial-spec-proposal.pdf>
-- Coq proofs: <https://category-labs.github.io/category-research/reserve-balance-coq-proofs>
+- Coq proofs: <https://category-labs.github.io/category-research/formalverif/reserve-balance/monad.proofs.reservebal.html>
 
-Reviewed: 2026-06-25.
+Reviewed: 2026-07-14.
 
 ## What the Official Docs Say
 
@@ -24,6 +25,8 @@ Reviewed: 2026-06-25.
 - The docs state that delegated EOA balance changes that are unchanged or increasing are fine.
 - Delegated EOAs cannot use the undelegated-account emptying exception.
 - For the simpler execution-policy model, the docs distinguish excessive intermediate debits from the ending-balance check.
+- MIP-4 specifies that `dippedIntoReserve()` evaluates the reserve condition against the current execution state rather than only the post-execution state.
+- MIP-4 specifies that the check covers all accounts touched in the transaction, regardless of call depth.
 
 ## How This Maps to Repo Evidence
 
@@ -47,8 +50,9 @@ The unchanged below-reserve case is now repo-verified: a delegated EOA starting 
 
 - How exactly does `dippedIntoReserve()` sample reserve state during nested calls?
 - Does the precompile expose current balance state, ending-balance policy state, or another implementation checkpoint?
-- Does Monad Foundry's cheatcode-delegation path intentionally omit reserve tracking, or is the divergence a tooling limitation?
-- Do sender-versus-sponsor variants produce the same observations as the sponsor-submitted Testnet path?
+- Does the implementation match the specified touched-account behavior across deeper nested calls and callbacks?
+- Which account classes beyond EIP-7702 delegated EOAs can make the precompile return `true`?
+- Does the below-reserve recovery case, such as 9 MON -> 11 MON, need additional repo evidence beyond the documented policy?
 
 ## Usage Guidance
 

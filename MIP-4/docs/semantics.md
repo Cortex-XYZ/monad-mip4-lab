@@ -23,8 +23,9 @@ Citations reference matrix rows by name or document section headings. Transactio
 - The documented precompile address and selector are callable on Monad Testnet. `[status: verified]` — findings.md § Finding 1: The MIP-4 precompile is live on Monad Testnet; known-facts.md § Verified Facts.
 - A real authorization-list transaction produced `dippedIntoReserve() == true` during the recorded delegated EOA balance transition. `[status: verified]` — findings.md § First verified dippedIntoReserve() == true; state-machine-matrix.md § Observation Matrix, row: First true path.
 - A current-balance Testnet comparison produced `dippedIntoReserve() == true` for both sponsor-submitted and delegated-authority-submitted type-4 transactions when the delegated authority balance decremented below 10 MON during execution. `[status: verified]` (gas-accounting caveat on the authority case) — findings.md § Sender vs sponsor comparison; state-machine-matrix.md § Observation Matrix, rows: Sponsor current-balance comparison, Authority current-balance comparison.
-- The comparable local cheatcode-delegation experiment did not reproduce that reserve-dip observation. `[status: verified]` (negative observation, scoped to the recorded experiment) — findings.md § Delegated EOA local Foundry measurement; foundry-fidelity.md § Compatibility Table; state-machine-matrix.md § Observation Matrix, row: Local delegated simulation.
-- These facts establish a verified sufficient condition and a local/Testnet divergence, not the complete MIP-4 state machine. `[status: inferred]` — minimum-conditions.md § Current Verified Facts; foundry-fidelity.md § Current Verified Facts.
+- Monad Foundry v1.7.1 reproduces the reserve-dip observation with local cheatcode-created delegation: `false -> true` for no-restore and `false -> true -> false` for drain-restore. `[status: verified]` — findings.md § Monad Foundry v1.7.1 reserve tracking; foundry-fidelity.md § Reproduction; state-machine-matrix.md § Observation Matrix, rows: Local no-restore and Local drain-restore.
+- Monad Foundry 1.5.0 returned `false` throughout the same local transitions. `[status: verified]` (historical, version-specific negative result) — findings.md § Historical Monad Foundry 1.5.0 measurement; foundry-fidelity.md § Compatibility Table; state-machine-matrix.md § Observation Matrix, row: Historical local 1.5.0.
+- These facts establish multiple sufficient paths and a version-specific tooling difference, not the complete MIP-4 state machine. `[status: inferred]` — minimum-conditions.md § Current Verified Facts; foundry-fidelity.md § What This Resolves.
 
 ## What the Specification Says
 
@@ -41,7 +42,8 @@ See [Official Monad Reserve Balance Documentation Notes](official-reserve-balanc
 ## What the Implementation Appears to Do
 
 - Testnet behavior shows `false -> true -> false` across a delegated EOA's temporary transition below 10 MON, with `false` returning after the balance is restored. `[status: verified]` — state-machine-matrix.md § Observation Matrix, row: First true path; reserve-state-lifetime.md § Current Verified Facts.
-- Interpretation: the precompile exposes a transaction-level reserve-violation state during execution. `[status: hypothesis]` — findings.md § Current Understanding (current hypothesis: `dippedIntoReserve()` exposes that transaction-level violation state).
+- MIP-4 specifies that the precompile evaluates the reserve condition using the current execution state and all accounts touched in the transaction, regardless of call depth. `[status: specified]` — official-reserve-balance.md § What the Official Docs Say; MIP-4 § Semantics.
+- The observed `false -> true -> false` transition is consistent with those specified current-state semantics. `[status: verified]` — state-machine-matrix.md § Observation Matrix, rows: First true path and Local drain-restore.
 - The exact boundary is verified for the sponsor-submitted Testnet path. `[status: verified]` — state-machine-matrix.md § Observation Matrix, rows: Exact boundary, One wei below boundary; known-facts.md § Boundary Conclusion.
 - The broader mechanism and full state machine remain unverified. `[status: unverified]` — reserve-state-lifetime.md § Open Questions; official-reserve-balance.md § Questions Still Open for This Repo.
 
@@ -54,17 +56,17 @@ See [Official Monad Reserve Balance Documentation Notes](official-reserve-balanc
 - In the same Testnet path, reaching exactly 10 MON produced `dippedIntoReserve() == false`. `[status: verified]` — state-machine-matrix.md § Observation Matrix, row: Exact boundary; minimum-conditions.md § Boundary Experiment Result.
 - In the same Testnet path, reaching 10 MON minus 1 wei produced `dippedIntoReserve() == true`. `[status: verified]` — state-machine-matrix.md § Observation Matrix, row: One wei below boundary; minimum-conditions.md § Boundary Experiment Result.
 - In the current-balance sender/sponsor comparison, both sponsor-submitted and authority-submitted transactions produced `false -> true -> false` while the delegated authority balance decremented below 10 MON. `[status: verified]` (gas-accounting caveat) — state-machine-matrix.md § Observation Matrix, rows: Sponsor current-balance comparison, Authority current-balance comparison; minimum-conditions.md § Sender vs Sponsor Experiment Result.
-- Local `vm.signAndAttachDelegation()` reproduced delegated routing but not that reserve-dip observation. `[status: verified]` (negative result) — findings.md § Delegated EOA local Foundry measurement; implementation reference `examples/reserve-probes/test/DelegatedDrain.t.sol` (state-machine-matrix.md § Observation Matrix, row: Local delegated simulation).
+- Local `vm.signAndAttachDelegation()` on Monad Foundry v1.7.1 reproduced reserve tracking for both no-restore and drain-restore balance transitions. `[status: verified]` — findings.md § Monad Foundry v1.7.1 reserve tracking; implementation reference `examples/reserve-probes/test/DelegatedDrain.t.sol`; state-machine-matrix.md § Observation Matrix, rows: Local no-restore and Local drain-restore.
 - In a below-reserve Testnet path, a delegated EOA starting at 9 MON and remaining unchanged succeeded with `false -> false -> false`. `[status: verified]` — state-machine-matrix.md § Observation Matrix, row: Below reserve, unchanged; known-facts.md § Verified Below-Reserve Cases.
 - In a below-reserve Testnet path, a delegated EOA starting at 9 MON and attempting to decrement to 8 MON reverted; because the transaction reverted, checkpoint writes did not persist, so the verified observation is the failed outcome. `[status: verified]` (failed-outcome caveat) — state-machine-matrix.md § Observation Matrix, row: Below reserve, decremented; known-facts.md § Verified Below-Reserve Cases.
 
 ## What We Can Infer
 
-- Delegated execution routing and reserve-balance tracking are distinct behaviors. `[status: inferred]` — foundry-fidelity.md § Compatibility Table (routing reproduced locally, tracking not).
+- A real type-4 transaction and protocol-created delegation are not required merely to make the reserve tracker return `true` locally. `[status: verified]` — foundry-fidelity.md § What This Resolves; minimum-conditions.md § Current Answer Map.
 - The successful Testnet setup is a verified sufficient condition. `[status: verified]` (sufficiency only; necessity of individual conditions unknown) — minimum-conditions.md § Current Verified Facts.
 - The official docs and the boundary experiment agree that the delegated-EOA boundary is below 10 MON for the tested path. `[status: verified]` (agreement documented) — official-reserve-balance.md § How This Maps to Repo Evidence; known-facts.md § Boundary Conclusion.
 - A separate sponsor is not required to observe `dippedIntoReserve() == true` in the tested current-balance path. `[status: verified]` — known-facts.md § Sender vs Sponsor Conclusion; minimum-conditions.md § Sender vs Sponsor Experiment Result.
-- The current evidence does not establish the complete MIP-4 state machine or prove which parts of the successful setup are required. `[status: inferred]` — minimum-conditions.md § Candidate Conditions (rows marked "Unverified as required").
+- The current evidence does not establish the complete MIP-4 state machine or prove whether EIP-7702 delegation itself is required across all account classes. `[status: inferred]` — minimum-conditions.md § Candidate Conditions.
 
 ## Open Questions
 

@@ -3,8 +3,7 @@
  * guard against REAL Monad reserve semantics using the Monad foundry fork's
  * `anvil --monad` (monad-revm: live 0x1001 precompile + failing-set tracking).
  *
- * Covers what `forge test` cannot (the fork's test EVM does not track
- * reserve debits):
+ * Covers RPC and node-level paths beyond the Forge unit suite:
  *   1. guard dip -> ReserveDipped() revert + frame unwind
  *   2. transient dip that recovers within the frame -> succeeds
  *   3. innocence rule: pre-existing dip -> guarded call proceeds
