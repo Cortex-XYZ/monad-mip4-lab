@@ -23,9 +23,6 @@ contract DelegatedDrainTest is Test {
 
         vm.deal(authority, 11 ether);
         vm.deal(sponsor, 100 ether);
-    }
-
-    function attachDelegationAndAssertCode() internal {
         vm.signAndAttachDelegation(address(implementation), AUTHORITY_PK);
 
         bytes memory code = authority.code;
@@ -37,8 +34,6 @@ contract DelegatedDrainTest is Test {
     }
 
     function testTemporaryDrainRestoreMeasurement() public {
-        attachDelegationAndAssertCode();
-
         vm.prank(sponsor);
 
         (
@@ -61,15 +56,12 @@ contract DelegatedDrainTest is Test {
         assertEq(duringBalance, 9 ether);
         assertEq(afterBalance, 11 ether);
 
-        // This is now an observed fact from our previous run.
         assertFalse(beforeDip);
-        assertFalse(duringDip);
+        assertTrue(duringDip);
         assertFalse(afterRestore);
     }
 
     function testFinalBelowReserveMeasurement() public {
-        attachDelegationAndAssertCode();
-
         vm.prank(sponsor);
 
         (bool beforeDip, bool duringDip, uint256 beforeBalance, uint256 duringBalance) =
@@ -83,7 +75,7 @@ contract DelegatedDrainTest is Test {
         assertEq(beforeBalance, 11 ether);
         assertEq(duringBalance, 9 ether);
 
-        // Do NOT assert duringDip yet.
-        // This test is measuring the behavior, not assuming the answer.
+        assertFalse(beforeDip);
+        assertTrue(duringDip);
     }
 }

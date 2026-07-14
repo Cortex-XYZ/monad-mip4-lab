@@ -83,8 +83,8 @@ are split deliberately:
 
 | Environment | Covers | Cannot cover |
 |---|---|---|
-| `forge test` (Monad fork) | Guard pass-through, precompile call-shape rules, account access control, ERC-1271, no-dip parity with stock account | Dip semantics — the fork's *test* EVM answers the precompile but never populates the failing set (verified against DB-backed accounts and `--isolate`) |
-| `anvil --monad` (integration suite) | Real failing-set tracking: dip → revert + unwind, transient recovery, innocence rule, full 3-op EntryPoint bundle | The end-of-tx reserve *enforcement* (anvil tracks but does not revert) |
+| `forge test` (tested on Monad Foundry v1.7.1) | Unmocked delegated-EOA dip tracking and unwind; deterministic guard-transition tests; precompile call-shape rules; account access control; ERC-1271; parity with the stock account | Real type-4 RPC transactions and node-level integration; end-of-tx reserve enforcement |
+| `anvil --monad` (integration suite) | Real type-4 delegation and failing-set tracking: dip → revert + unwind, transient recovery, innocence rule, full 3-op EntryPoint bundle | The end-of-tx reserve *enforcement* (anvil tracks but does not revert) |
 | Monad testnet (demo) | Everything, including the whole-bundle protocol revert the guard exists to prevent | — |
 
 ## Testnet demo

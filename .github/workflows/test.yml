@@ -27,8 +27,10 @@ jobs:
           persist-credentials: false
           submodules: recursive
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - name: Install Monad Foundry
+        uses: category-labs/foundry-toolchain@v1
+        with:
+          version: v1.7.1-monad-v1.0.0
 
       - name: Show Forge version
         run: forge --version

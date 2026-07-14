@@ -12,8 +12,9 @@ Per-claim status labels and citations are consolidated in [MIP-4 semantics revie
 - Selector `0x3a61584e` returns an ABI-encoded boolean.
 - Malformed calldata in the recorded Testnet check reverted with `input is invalid`.
 - Solidity contracts in this repo can call the precompile.
-- Local Monad Foundry can simulate the MIP-4 precompile and EIP-7702 delegated execution routing.
-- Local Monad Foundry did not reproduce reserve-balance violation tracking in the recorded `vm.signAndAttachDelegation()` experiment.
+- Monad Foundry v1.7.1 can simulate the MIP-4 precompile, EIP-7702 delegated execution routing, and reserve-balance violation tracking in isolated Forge tests.
+- In the repo-local `vm.signAndAttachDelegation()` regression, an EIP-7702 delegated EOA moving from 11 MON to 9 MON produced `false -> true`; restoring it to 11 MON produced `false -> true -> false`.
+- The older `1.5.0-stable-monad` release returned `false` throughout the same local balance transitions. This is a historical, version-specific result.
 - A real Monad Testnet EIP-7702 authorization-list transaction produced `dippedIntoReserve() == true` while a protocol-created delegated EOA moved from 19 MON to 9 MON during execution and returned to 19 MON afterward.
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to exactly 10 MON produced `lastDuringDip = false`.
 - In the same sponsor-submitted Testnet authorization-list path, moving from 19 MON to 10 MON minus 1 wei produced `lastDuringDip = true`.
@@ -33,9 +34,9 @@ These claims come from Monad's official Reserve Balance documentation, not from 
 
 See [Official Monad Reserve Balance Documentation Notes](official-reserve-balance.md).
 
-## Hypotheses
+## Current Scope
 
-- The observed boundary behavior may depend on the same conditions as the successful Testnet path: protocol-created EIP-7702 delegation, type-4 authorization-list transaction, sponsor-submitted call, and delegated authority execution.
+The repo has reproduced reserve tracking with both real Testnet authorization-list transactions and local cheatcode-created delegation. This removes a real type-4 transaction and protocol-created delegation from the minimum requirements for the tested `dippedIntoReserve() == true` observation. It does not establish behavior for other account classes or every transaction path.
 
 ## Verified Boundary Cases
 
@@ -95,12 +96,12 @@ For the tested below-reserve path, starting below reserve is not itself a reserv
 
 ## Open Questions
 
-- Does the boundary behavior depend on sender, sponsor, or delegated account classification?
-- Does the same boundary behavior reproduce outside the successful Testnet authorization-list path?
+- Does the boundary behavior depend on delegated account classification when other account classes are tested?
+- Does the exact 10 MON boundary reproduce in local Forge and Anvil for every tested transaction path?
 - Does `dippedIntoReserve()` expose the same state model as the official execution-policy description, or a lower-level implementation checkpoint?
 - Does the below-reserve recovery case, 9 MON -> 11 MON, have saved Testnet evidence?
 
 ## Next Steps
 
 - Add saved evidence for the below-reserve recovery path if needed.
-- Keep Issue #1 scoped to this tested path if closing it; open follow-up issues for other sender or account-class variants.
+- Use follow-up issues for sender, account-class, and nested-call variants instead of expanding the completed threshold experiment.

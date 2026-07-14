@@ -14,7 +14,8 @@ Matrix rows are cited by row name from [semantics.md](semantics.md); keep row na
 - In a current-balance Testnet comparison, both sponsor-submitted and delegated-authority-submitted type-4 transactions dipped when the delegated authority was decremented below 10 MON.
 - In a below-reserve Testnet path, a delegated EOA starting at 9 MON and remaining unchanged succeeded with `false -> false -> false`.
 - In a below-reserve Testnet path, a delegated EOA starting at 9 MON and decrementing to 8 MON reverted. Because the transaction reverted, checkpoint writes and logs did not persist; the verified observation is the failed transaction outcome, not a persisted `duringDip = true` value.
-- A local Monad Foundry experiment using `vm.signAndAttachDelegation()` routed delegated execution but returned `false` before, during, and after an 11 MON to 9 MON to 11 MON transition.
+- Monad Foundry v1.7.1 reproduces reserve tracking with `vm.signAndAttachDelegation()`: no-restore returns `false -> true`, while drain-restore returns `false -> true -> false`.
+- The older `1.5.0-stable-monad` release returned `false` throughout the same local transitions. That row is retained as a historical version regression.
 - The Testnet transition above is a verified sufficient condition, not a complete description of the state machine.
 
 ## Observation Matrix
@@ -28,13 +29,14 @@ Matrix rows are cited by row name from [semantics.md](semantics.md); keep row na
 | Authority current-balance comparison | Monad Testnet | EIP-7702 delegated EOA | Type-4 authorization-list transaction | Delegated authority | 20.447430148844345 MON -> 9.944889575194999999 MON -> 20.392319724039345 MON | Success | `false -> true -> false` | Verified with gas-accounting caveat | `0x45164d211f3318567acac5e580101f58552a2e58a0e760c368e28f5a8fdccaaa` |
 | Below reserve, unchanged | Monad Testnet | EIP-7702 delegated EOA | Type-4 authorization-list transaction | Sponsor | 9 MON -> 9 MON -> 9 MON | Success | `false -> false -> false` | Verified | `0xc12ed9c4301ff17813161dc87df7374b57d603183c9cf305f137ceb8a8309b4a` |
 | Below reserve, decremented | Monad Testnet | EIP-7702 delegated EOA | Type-4 authorization-list transaction | Sponsor | 9 MON -> 8 MON intended | Reverted | Checkpoint writes reverted; receipt status is `0` | Verified failed outcome | `0xb3a7e0544f21aca52a2226c5cd92f5388e851cf02209db6dda6c6e4bfad57326` |
-| Local delegated simulation | Local Monad Foundry | Cheatcode-delegated EOA | `vm.signAndAttachDelegation()` | Sponsor | 11 MON -> 9 MON -> 11 MON | Success | `false -> false -> false` | Local-only fidelity gap | `examples/reserve-probes/test/DelegatedDrain.t.sol` |
+| Historical local 1.5.0 | Monad Foundry 1.5.0 | Cheatcode-delegated EOA | `vm.signAndAttachDelegation()` | Sponsor | 11 MON -> 9 MON -> 11 MON | Success | `false -> false -> false` | Verified historical negative result | `findings.md` |
+| Local no-restore | Monad Foundry 1.7.1 | Cheatcode-delegated EOA | `vm.signAndAttachDelegation()` | Sponsor | 11 MON -> 9 MON | Success | `false -> true` | Verified local result | `examples/reserve-probes/test/DelegatedDrain.t.sol` |
+| Local drain-restore | Monad Foundry 1.7.1 | Cheatcode-delegated EOA | `vm.signAndAttachDelegation()` | Sponsor | 11 MON -> 9 MON -> 11 MON | Success | `false -> true -> false` | Verified local result | `examples/reserve-probes/test/DelegatedDrain.t.sol` |
 
 ## Open Questions
 
 - Does the observed `< 10 MON` boundary also hold for other sender, sponsor, and account-class combinations?
 - Does sender classification change reserve tracking in cases other than the current-balance below-threshold comparison?
-- Which difference between protocol-created and cheatcode-created delegation explains the observed divergence?
 - Does the result depend on touched-account or checkpoint classification?
 - Can the below-reserve recovery case, 9 MON -> 11 MON, be reproduced with saved Testnet evidence?
 
@@ -42,4 +44,5 @@ Matrix rows are cited by row name from [semantics.md](semantics.md); keep row na
 
 - Add saved evidence for the below-reserve recovery path if needed.
 - Compare additional sponsor-submitted and authority-submitted boundary variants if needed.
+- Add account-class and nested-call variants using the local v1.7.1 regression as the baseline.
 - Attach transaction hashes, commands, and raw outputs to each matrix row.

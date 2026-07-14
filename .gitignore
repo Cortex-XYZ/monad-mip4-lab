@@ -6,3 +6,10 @@
 
 # OS / editor
 .DS_Store
+
+# Foundry build artifacts
+**/cache/
+**/out/
+
+# Accidental root-level dependency installs
+/lib/

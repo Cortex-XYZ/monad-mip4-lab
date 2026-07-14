@@ -1,35 +1,55 @@
 # Monad Foundry Fidelity
 
-## Purpose
+## Answer
 
-Track which relevant Monad Testnet behaviors are faithfully reproduced by local Monad Foundry and identify fidelity gaps that affect MIP-4 research.
+Monad Foundry v1.7.1 reproduces the MIP-4 reserve tracker inside `forge test`. The earlier local/Testnet divergence came from testing with `1.5.0-stable-monad`, not from an inherent Forge limitation.
 
-## Current Verified Facts
+The repo-local regression uses `vm.signAndAttachDelegation()` with an EIP-7702 delegated EOA funded before each isolated test transaction:
 
-- `vm.signAndAttachDelegation()` reproduced EIP-7702 delegated execution routing locally.
-- In the measured local transition `11 MON -> 9 MON -> 11 MON`, `dippedIntoReserve()` returned `false` before, during, and after the temporary drain.
-- In the measured Testnet transition `19 MON -> 9 MON -> 19 MON`, `dippedIntoReserve()` returned `false`, then `true`, then `false`.
-- These experiments establish a behavioral divergence. They do not yet identify its cause.
+```text
+11 MON -> 9 MON             false -> true
+11 MON -> 9 MON -> 11 MON   false -> true -> false
+```
+
+Both cases pass on `v1.7.1-monad-v1.0.0`. The same experiment on `1.5.0-stable-monad` returned `false` throughout. The toolchain version is therefore part of the experiment definition.
 
 ## Compatibility Table
 
-| Feature                     | Local Monad Foundry | Monad Testnet |
-| --------------------------- | ------------------- | ------------- |
-| Delegated execution routing | yes                 | yes           |
-| Reserve violation tracking  | no                  | yes           |
+| Capability | Monad Foundry 1.5.0 | Monad Foundry 1.7.1 | `anvil --monad` | Monad Testnet |
+| --- | --- | --- | --- | --- |
+| MIP-4 precompile available | yes | yes | yes | yes |
+| EIP-7702 delegated routing | yes | yes | yes | yes |
+| Reserve tracker changes after a delegated-account dip | no in the recorded regression | yes | yes | yes |
+| Real type-4 authorization-list transaction over RPC | not tested | not a `forge test` transaction | yes | yes |
+| Protocol end-of-transaction reserve enforcement | not established | not established by the Forge regression | not reproduced; Anvil tracks but does not revert | verified by Testnet receipts |
 
-The reserve-tracking row describes the specific experiments above, not a claim that local Monad Foundry can never reproduce reserve tracking.
+## Reproduction
 
-## Open Questions
+The Forge regression is [`examples/reserve-probes/test/DelegatedDrain.t.sol`](../examples/reserve-probes/test/DelegatedDrain.t.sol). Its project configuration enables Monad execution and test isolation:
 
-- Does local execution omit a real type-0x04 transaction path or authorization-list metadata?
-- Does protocol-created delegation have state or classification absent from the cheatcode?
-- Are touched-account or checkpoint rules different locally?
-- Is the divergence a Monad Foundry limitation, configuration issue, or bug?
+```toml
+evm_version = "prague"
+network = "monad"
+isolate = true
+```
 
-## Next Steps
+Run it with the pinned Monad Foundry release:
 
-- Minimize the local and Testnet transactions to comparable inputs.
-- Compare transaction envelopes, authorization metadata, account code, callers, and traces.
-- Check current Monad Foundry documentation and known issues before classifying the divergence.
-- Keep this investigation blocked on evidence until the smallest differing condition is isolated.
+```sh
+cd MIP-4/examples/reserve-probes
+forge test --match-contract DelegatedDrainTest -vvv
+```
+
+The `mip4-sca` project adds an unmocked guarded-account regression and an 18-case `anvil --monad` RPC integration suite.
+
+## What This Resolves
+
+- A real type-4 transaction is not required merely to reproduce reserve tracking locally.
+- Protocol-created delegation is not required for the tested Forge observation; cheatcode-created delegation is sufficient on v1.7.1.
+- The old `false -> false` result remains useful as a version-specific regression record, but it no longer describes the current local workflow.
+
+## Remaining Boundaries
+
+- `vm.signAndAttachDelegation()` does not reproduce a real type-4 transaction envelope. Use `anvil --monad` when authorization-list and RPC behavior are part of the question.
+- Use Testnet when the question depends on public-node behavior, live protocol enforcement, or a persisted transaction receipt.
+- Keep the Monad Foundry version pinned in CI and retain the real-dip regression so future upgrades cannot silently remove tracker behavior.

@@ -45,9 +45,7 @@ Conclusion:
 
 The precompile exists on Monad Testnet and returns a valid ABI-encoded boolean.
 
-Source:
-
-* https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md
+Source: [MIP-4 final text](https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md)
 
 ---
 
@@ -72,9 +70,7 @@ Conclusion:
 
 Malformed calldata is rejected exactly as described in the specification.
 
-Source:
-
-* https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md
+Source: [MIP-4 final text](https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md)
 
 ---
 
@@ -132,7 +128,7 @@ This is expected because the execution environment does not contain Monad extens
 
 ---
 
-### Finding 5: Monad Foundry simulates MIP-4
+### Finding 5: Monad Foundry exposes the MIP-4 precompile
 
 The same test was executed using Monad Foundry.
 
@@ -144,11 +140,9 @@ Result:
 
 Conclusion:
 
-Monad Foundry includes Monad-specific execution behavior and correctly simulates the MIP-4 precompile.
+Monad Foundry includes Monad-specific execution behavior and exposes the MIP-4 precompile. Reserve-tracker behavior is tested separately below because it changed between the measured 1.5.0 and 1.7.1 releases.
 
-Source:
-
-* https://docs.monad.xyz/tooling-and-infra/toolkits/monad-foundry
+Source: [Monad Foundry documentation](https://docs.monad.xyz/tooling-and-infra/toolkits/monad-foundry)
 
 ---
 
@@ -156,7 +150,7 @@ Source:
 
 The reserve-balance check is transaction-scoped.
 
-Based on the Monad Initial Specification Proposal, reserve-balance violations are determined by examining touched accounts whose balances changed during execution.
+The final MIP-4 text specifies that `dippedIntoReserve()` evaluates the reserve condition using the current execution state in place of the post-execution state. It considers all accounts touched in the transaction, regardless of call depth.
 
 The condition is approximately:
 
@@ -168,39 +162,22 @@ AND balance < reserve threshold
 
 When this condition becomes true for a touched account, execution enters a reserve-balance violation state.
 
-Source:
+Sources: [MIP-4 final text](https://github.com/monad-crypto/MIPs/blob/main/MIPs/MIP-4.md) and [Monad Initial Specification Proposal](https://category-labs.github.io/category-research/monad-initial-spec-proposal.pdf).
 
-* https://category-labs.github.io/category-research/monad-initial-spec-proposal.pdf
-
-Current hypothesis:
-
-`dippedIntoReserve()` exposes that transaction-level violation state during execution.
-
-This has not yet been verified through a successful true-path experiment.
+The repo has now verified this state transition on Testnet, Monad Foundry v1.7.1, and `anvil --monad` for the tested EIP-7702 delegated-account paths.
 
 ---
 
 ## Open Questions
 
-1. What is the exact reserve-balance threshold calculation?
-2. Which account types are exempt?
-3. What is the smallest transaction that causes a reserve-balance violation?
-4. Can `dippedIntoReserve()` be forced to return `true` on Monad Testnet?
-5. What application patterns become possible once contracts can observe reserve-balance violations during execution?
+1. Which account classes beyond EIP-7702 delegated EOAs can make the tracker return `true`?
+2. How does the tracker behave across deeper call stacks and callbacks?
+3. Does below-reserve recovery, such as 9 MON to 11 MON, need additional saved evidence?
+4. How should wallets, bundlers, and paymasters communicate a reserve failure?
 
 ---
 
-## Next Experiment
-
-Design and execute a transaction that intentionally causes a reserve-balance violation and verify:
-
-```txt
-dippedIntoReserve() == true
-```
-
-Once verified, compare the false-path and true-path execution traces and document the differences.
-
-## Delegated EOA local Foundry measurement
+## Historical Monad Foundry 1.5.0 measurement
 
 Date: 2026-06-22
 
@@ -240,11 +217,37 @@ Final below-reserve no-restore:
 
 ### Conclusion
 
-`vm.signAndAttachDelegation` verifies EIP-7702 code routing locally, but it does not reproduce Monad reserve-balance violation tracking in this experiment.
+On `1.5.0-stable-monad`, `vm.signAndAttachDelegation` reproduced EIP-7702 code routing but did not populate the reserve tracker in these Forge tests. This result is retained as a version-specific regression record. It does not describe Monad Foundry v1.7.1.
 
-Local Monad Foundry is therefore inconclusive for the exact state transition that causes `dippedIntoReserve()` to return true.
+## Monad Foundry v1.7.1 reserve tracking
 
-Next step: test with a real Monad Testnet type-0x04 transaction carrying an authorization list.
+Date: 2026-07-14
+
+### Claim tested
+
+The same cheatcode-delegated EOA transition should populate the reserve tracker on the current Monad Foundry release.
+
+### Experiment
+
+- Monad Foundry: `v1.7.1-monad-v1.0.0`
+- EVM version: `prague`
+- Network family: `monad`
+- Forge transaction isolation: enabled
+- Authority EOA starts at 11 MON and delegates to `DelegatedDrain`
+- Sponsor triggers a 2 MON debit, leaving the authority at 9 MON
+
+### Result
+
+```text
+No restore:      false -> true
+Drain and restore: false -> true -> false
+```
+
+Both tests passed in [`examples/reserve-probes/test/DelegatedDrain.t.sol`](../examples/reserve-probes/test/DelegatedDrain.t.sol).
+
+### Conclusion
+
+Monad Foundry v1.7.1 populates the reserve tracker in `forge test`. A real type-4 transaction and protocol-created delegation are not required for this tested observation. The old local/Testnet divergence was caused by the tested Monad Foundry version.
 
 ## First verified dippedIntoReserve() == true
 
@@ -283,18 +286,18 @@ This is the first verified `dippedIntoReserve() == true`.
 
 A protocol-created EIP-7702 delegated EOA whose balance is decremented from above 10 MON to below 10 MON during transaction execution causes `dippedIntoReserve()` to return true.
 
-Local Monad Foundry with `vm.signAndAttachDelegation` did not reproduce this reserve-balance state transition, even though it reproduced delegated code routing. Therefore, local cheatcode delegation is not equivalent to the real Monad Testnet EIP-7702 authorization path for this reserve-balance experiment.
+Monad Foundry 1.5.0 did not reproduce this state transition at the time of the original Testnet comparison. Monad Foundry v1.7.1 now reproduces it with cheatcode-created delegation, so the original difference was version-specific.
 
 ### Remaining open question
 
 This verifies a sufficient transition, not the complete state machine.
 
-Next boundary tests:
+The following boundary tests were identified from this first true path:
 
-1. Above reserve -> exactly 10 MON should probably return false.
-2. Above reserve -> 10 MON minus 1 wei should probably return true.
-3. Already below reserve -> unchanged or increased should return false.
-4. Already below reserve -> decremented further may return true for delegated EOAs.
+1. Above reserve -> exactly 10 MON. Verified false on Testnet.
+2. Above reserve -> 10 MON minus 1 wei. Verified true on Testnet.
+3. Already below reserve -> unchanged. Verified false on Testnet. Increasing remains unsaved in this repo.
+4. Already below reserve -> decremented further. Verified as a reverted Testnet transaction; intermediate checkpoint writes did not persist.
 
 ## Sender vs sponsor comparison
 

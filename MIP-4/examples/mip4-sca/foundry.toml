@@ -4,11 +4,10 @@ out = "out"
 libs = ["lib"]
 solc = "0.8.28"
 evm_version = "prague"
+network = "monad"
 optimizer = true
 optimizer_runs = 1000
-# Run each top-level test call as a real transaction. Required for MIP-4
-# testing with the Monad foundry fork: the reserve-balance tracker is only
-# initialized on the full-transaction path, and the failing set is tx-scoped.
+# MIP-4 reserve tracking is transaction-scoped.
 isolate = true
 
 [rpc_endpoints]

@@ -517,7 +517,7 @@ op2 MUST be given explicit gas limits (its execution reverts by design, so gas e
 
 **Path A — direct `handleOps` (deterministic, bundler-free):** the demo script signs all three ops and submits `EntryPoint.handleOps(ops, beneficiary)` itself from the funder EOA. This proves the contract layer against the *real* precompile and *real* protocol check with zero bundler variables. The verifier decodes the receipt and asserts / prints:
 
-```
+```text
 op1 (Alice)  UserOperationEvent success=true
 op2 (Bob)    UserOperationEvent success=false
              UserOperationRevertReason = ReserveDipped()
@@ -534,22 +534,22 @@ BUNDLE TX:   status = success   ← one dipping op did NOT kill the bundle
 
 ### 5.6 Testing strategy (as implemented)
 
-The Monad fork of Foundry (`foundryup --network monad`) embeds monad-revm, which implements the MIP-4 precompile **with the real failing-set tracker** — so no mock precompile is needed or possible (`vm.etch` at `0x1001` is rejected: it is a protected precompile address). Two empirically-verified constraints shape the strategy:
+The Monad fork of Foundry (`foundryup --network monad`) embeds monad-revm, which implements the MIP-4 precompile **with the real failing-set tracker**. Two verified boundaries shape the strategy:
 
-1. **`forge test` cannot exercise dips.** The fork's *test* EVM answers the precompile (correct call-shape behavior, always `false`) but never populates the failing set — reserve debits by delegated EOAs are not tracked in the test-executor path (verified with DB-backed original balances and `--isolate`; the isolate path also skips tracker maintenance).
-2. **`anvil --monad` implements the full semantics** — tracker initialized per transaction, debits/credits/frame-reverts maintained, delegated-EOA thresholds honoring `min(10 MON, tx-start balance)` and contract exemption. It does **not** implement the end-of-transaction *enforcement* revert (neither does monad-revm anywhere); enforcement exists only on real Monad networks.
+1. **`forge test` tracks reserve dips in the tested Monad Foundry v1.7.1 release.** A delegated account funded with 10.5 MON before the isolated test transaction reports `false → true` after a 1 MON debit; the guard reverts and unwinds the transfer. The older `1.5.0-stable-monad` release exposed the precompile but returned `false → false` for the same setup, so the toolchain version is part of the regression contract.
+2. **`anvil --monad` covers the RPC transaction path** — real type-4 delegation, tracker initialization per transaction, debit/credit/frame-revert maintenance, delegated-EOA thresholds honoring `min(10 MON, tx-start balance)`, and contract exemption. It does **not** implement the end-of-transaction *enforcement* revert; that final protocol check remains a Testnet verification.
 
 Three verification layers follow:
 
 | Layer | Command | Coverage |
 |---|---|---|
-| Forge unit tests (`test/Mip4ReserveGuard.t.sol`, `test/Mip4Account.t.sol`) | `forge test` | guard pass-through + inner-revert bubbling; precompile invocation-shape compliance (CALL-only, exact calldata, zero value, 32-byte bool); contract-account exemption; access control (EntryPoint/self only); batch behavior + `ExecuteError` index; ERC-1271 + `validateUserOp` signature paths; **differential no-dip parity vs stock `Simple7702Account`** |
-| **Anvil integration suite** (`demo/src/integration-anvil.ts`) | `npm run integration:anvil` | real semantics: dip → `ReserveDipped()` + frame unwind; transient dip-then-recover → succeeds; innocence rule (pre-existing dip → guarded call proceeds); exact-reserve boundary; **full EntryPoint v0.8 3-op bundle at the canonical address** (installed via deploy-then-`anvil_setCode`; OZ EIP712 recomputes the domain for the new address) asserting success `true/false/true`, `UserOperationRevertReason == ReserveDipped()` (`0x417680f0`), balances unwound, gas charged from deposit; negative control with the stock account staying dipped |
+| Forge tests (`test/Mip4ReserveGuard.t.sol`, `test/Mip4Account.t.sol`) | `forge test` | **real delegated-EOA dip → `ReserveDipped()` + transfer unwind**; deterministic mocked `false → true`, `true → true`, `false → false`, and unavailable-precompile branches; inner-revert bubbling; precompile invocation-shape compliance; contract-account exemption; access control; batch behavior; ERC-1271 and `validateUserOp`; differential parity with stock `Simple7702Account` |
+| **Anvil integration suite** (`demo/src/integration-anvil.ts`) | `npm run integration:anvil` | real type-4 and RPC semantics: dip → `ReserveDipped()` + frame unwind; transient recovery; innocence rule; exact-reserve boundary; **full EntryPoint v0.8 3-op bundle at the canonical address** asserting success `true/false/true`, `UserOperationRevertReason == ReserveDipped()` (`0x417680f0`), balances unwound, gas charged from deposit; negative control with the stock account staying dipped |
 | Testnet demo (§5.5) | `npm run demo:direct` / `demo:alto` | everything above on real Monad **plus the protocol's end-of-tx enforcement** — the `--contrast` run shows the whole-bundle revert the guard prevents |
 
 Test-environment notes: 7702 delegation in forge tests via `vm.etch(eoa, 0xef0100 ‖ impl)` (parsed as genuine EIP-7702 code); on anvil via real type-4 transactions. Accounts must be funded at the DB level (`anvil_setBalance` + mine) *before* the transaction under test — Monad's threshold is capped by the tx-start balance, so an account funded inside the same tx cannot violate (true on real Monad as well).
 
-Toolchain: Monad foundry fork (forge/anvil 1.5.0-monad), solc 0.8.28, `evm_version = "prague"`, deps pinned (`account-abstraction@v0.8.0`, `openzeppelin-contracts@v5.1.0`, `forge-std`); demo/integration in TypeScript with viem ≥ 2.37.
+Tested toolchain: Monad Foundry `v1.7.1-monad-v1.0.0`, solc 0.8.28, `network = "monad"`, `evm_version = "prague"`, and isolated Forge test transactions; dependencies pinned (`account-abstraction@v0.8.0`, `openzeppelin-contracts@v5.1.0`, `forge-std`); demo/integration in TypeScript with viem ≥ 2.37.
 
 ---
 
@@ -677,7 +677,7 @@ Operational notes:
 | 6 | **Replicated `BaseAccount` bodies** could drift from upstream. | Dependency pinned to `v0.8.0` + differential test (§5.6). |
 | 7 | **Public RPC lacks `debug_traceCall`** → demo bundler runs unsafe-mode. | Demo-acceptable; production note in §7.3. |
 | 8 | Open: published Alto docker image availability vs. source build; Monad's acceptance of `prague`-compiled bytecode. | Both have trivial fallbacks (build from source; `evm_version = cancun`). Verify at implementation time. |
-| 9 | **Monad foundry fork's `forge test` EVM does not track reserve debits** (precompile answers, failing set never populates — verified empirically, incl. `--isolate` and DB-backed balances). | Dip semantics are covered by the `anvil --monad` integration suite (§5.6), which runs the full transaction pipeline and verifiably tracks. Worth reporting upstream to category-labs/foundry. |
+| 9 | **Monad Foundry behavior is version-sensitive.** `1.5.0-stable-monad` exposed the precompile but failed to populate the tracker in `forge test`; `v1.7.1-monad-v1.0.0` passes the same delegated-account `false → true` regression. | Pin the tested release and run the real-dip Forge regression before accepting an upgrade. |
 | 10 | **Public testnet RPC `eth_call` breaks guarded simulation** (observed 2026-07-06, all providers tested): `eth_call` *enforces* the end-of-call reserve check but does **not** maintain the failing set — a dipping guarded call errors with `-32603 reserve balance violation` instead of the guard's `ReserveDipped()` (verified: direct `eth_call` of `execute`; non-dipping control passes). Consequence: bundlers' whole-bundle simulation (Alto `filterOps`) rejects any bundle containing a dipping op, even a guarded one, so Path B is blocked on such nodes. Real transactions are unaffected (both testnet Alto bundles landed earlier the same day when the backend behaved consistently — fleet is heterogeneous). | **Solved for bundling via Alto `--chain-type=monad`** (§5.4): per-op reserve simulation at acceptance rejects dipping ops before they reach a bundle, so `filterOps` only ever simulates clean bundles — verified live (Bob rejected at the door with the explicit reserve error; Alice+Carol's bundle landed). Residual gap remains worth reporting upstream: with enforcement-without-tracker in `eth_call`, the *on-chain* guard is invisible to simulation, so any op that dips only due to state changes between acceptance and inclusion still cannot be re-simulated; nodes should give `eth_call` tracker parity with execution. Path A (raw tx) always works. |
 
 ---

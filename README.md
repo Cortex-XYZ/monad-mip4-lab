@@ -24,7 +24,7 @@ MIP-N/
 
 - **All code lives under `examples/`.** Each example is a self-contained project folder named for what it does (e.g. `MIP-4/examples/reserve-probes/`), with its own toolchain config and dependencies. Different examples may use different frameworks (Foundry, Hardhat, viem/TS, …) and pin dependencies independently.
 - **Secrets are per-MIP.** Keystore passwords, deployed addresses, and env files live in `MIP-N/.secrets/`, which is gitignored. Experiment scripts resolve paths relative to their MIP folder.
-- **Monad Foundry.** Foundry-based examples that exercise Monad-specific behavior (such as the `0x1001` reserve-balance precompile) require the Monad fork of Foundry; standard Foundry cannot simulate the precompile.
+- **Monad Foundry.** Foundry-based examples that exercise Monad-specific behavior (such as the `0x1001` reserve-balance precompile) require the Monad fork of Foundry; standard Foundry cannot simulate the precompile. CI pins `v1.7.1-monad-v1.0.0` because the reserve tracker did not populate in the repo's recorded 1.5.0 regression.
 
 ## Research Workflow
 
@@ -42,18 +42,9 @@ Conclusion
 
 Conclusions should distinguish verified sufficient conditions from hypotheses and unverified behavior. Work that depends on unresolved semantics should be marked as blocked on further experiments.
 
-### Research Board
+### Issues
 
-Open work is tracked in the [Research Board](https://github.com/orgs/Cortex-XYZ/projects/1), which is linked to this repository.
-
-The board uses four research-specific statuses:
-
-- `Backlog`: unresolved, dependent, or not ready for execution
-- `Ready`: well-scoped with a clear experiment or research deliverable
-- `In Progress`: actively being investigated or documented
-- `Verified`: supported by verified evidence recorded in merged docs or tests
-
-`Verified` is intentionally different from “done.” Completing a task does not establish that its hypothesis is correct.
+Open work and completed investigations are tracked in the repository's [GitHub Issues](https://github.com/Cortex-XYZ/monad-mip-lab/issues). An issue is ready to close when its evidence is committed and the relevant research documents state what was verified and what remains open.
 
 ### Labels
 
@@ -72,11 +63,11 @@ The board uses four research-specific statuses:
 
 ## Contributing Research
 
-1. Select a `Ready` issue from the research board.
+1. Select an open issue with a clear experiment or research deliverable.
 2. State the claim or hypothesis being tested.
 3. Record the exact environment, transaction path, balances, callers, commands, and outputs.
 4. Separate observed facts from reasoning and conclusions.
 5. Update the relevant document or test with evidence.
-6. Move an issue to `Verified` only when the supporting evidence is committed and reviewable.
+6. Close an issue only when the supporting evidence is committed and reviewable.
 
 Negative results should be recorded as observations, not generalized beyond the tested environment.
